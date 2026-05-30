@@ -1,0 +1,18 @@
+flowchart TD
+    A[Input EMNIST x<br/>Shape: B x 1 x 28 x 28] --> B["Conv1 1 to 64, k3 s1 p1 + ReLU<br/>Output: B x 64 x 28 x 28<br/>Formula: Hout=floor((H+2p-k)/s)+1 = floor((28+2-3)/1)+1 = 28<br/>Params: 3*3*1*64 + 64 = 640"]
+    B --> C["Conv2 64 to 64, k3 s1 p1 + ReLU<br/>Output: B x 64 x 28 x 28<br/>Same formula keeps size 28x28<br/>Params: 3*3*64*64 + 64 = 36928"]
+    C --> D["MaxPool2d k2 s2<br/>Output: B x 64 x 14 x 14<br/>Formula: Hout=floor((H-k)/s)+1 = floor((28-2)/2)+1 = 14"]
+    D --> E[Dropout p=0.25<br/>Output: B x 64 x 14 x 14]
+    E --> F["Flatten<br/>Output: B x 12544<br/>Formula: 64*14*14 = 12544"]
+    F --> G["Linear fc1 12544 to 128 + ReLU<br/>Output: B x 128<br/>Params: 12544*128 + 128 = 1605760"]
+    G --> H["Linear fc2 128 to 83<br/>Output: B x 83 logits<br/>Params: 128*83 + 83 = 10707"]
+
+    P1[Total learnable params<br/>640 + 36928 + 1605760 + 10707 = 1654035]
+    D1[Dataset note<br/>EMNIST uses 28x28 grayscale chars. Mapping has 83 classes in this repo, so output logits are Bx83.]
+    I1[Improvement over MLP<br/>Convolution keeps 2D locality and shares filters across positions, improving handwriting feature extraction.]
+    S1[Shortcoming<br/>Still single-character classification only; cannot model full text sequences by itself.]
+
+    H -.-> P1
+    A -.-> D1
+    P1 -.-> I1
+    S1 -.-> I1

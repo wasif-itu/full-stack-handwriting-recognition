@@ -1,0 +1,25 @@
+flowchart TD
+    A[Original IAM line crops and labels] --> B["Sample k lines<br/>1 <= k <= 15"]
+    B --> C[Stack lines vertically to synthetic paragraph<br/>Raw shape H x W]
+    C --> D["Constraint filter<br/>H<=576, W<=640, text_len<=680"]
+    D --> E[Tokenize with S and E and pad P to fixed length 682<br/>target shape 682]
+    E --> F["Synthetic train sample after transform<br/>x: 1 x 576 x 640, y: 682"]
+
+    G[Original IAMParagraphs train set<br/>x:1x576x640, y:682] --> H[Original train dataset]
+    F --> I[ConcatDataset original + synthetic]
+    H --> I
+
+    I --> J[Train model on mixed distribution]
+    J --> K[Validate and test on original IAMParagraphs only]
+
+    P1["Learnable parameters<br/>Dataset pipeline has 0 learnable params.<br/>Model params depend on chosen model, e.g. ResnetTransformer has 15564692."]
+    F1["Shape formulas used<br/>Synthetic paragraph dimensions depend on sampled lines:<br/>H = sum(line_heights), W = max(line_widths)<br/>then constrained and transformed to model input dims."]
+    DSET[Dataset rationale<br/>Synthetic data increases layout/text diversity while preserving IAM style from real line crops; combined dataset improves robustness.]
+    IMP[Improvement over original-only training<br/>Better coverage of rare layouts and sequence patterns, usually improving generalization.]
+    SH[Shortcomings<br/>Synthetic composition may introduce distribution shift artifacts; gains must be confirmed on real-only validation/test.]
+
+    F -.-> P1
+    C -.-> F1
+    I -.-> DSET
+    DSET -.-> IMP
+    SH -.-> IMP

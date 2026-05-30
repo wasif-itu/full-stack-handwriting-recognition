@@ -1,0 +1,30 @@
+flowchart TD
+    A[Input IAMParagraphs x<br/>B x 1 x 576 x 640<br/>max label length 682] --> A0[Repeat channels for ResNet<br/>B x 3 x 576 x 640]
+    A0 --> R1[ResNet stem + maxpool + layers1-4<br/>Overall spatial downsample by 32<br/>Output: B x 512 x 18 x 20]
+    R1 --> P1[1x1 projection 512 to 256<br/>B x 256 x 18 x 20]
+    P1 --> P2[2D positional encoding<br/>B x 256 x 18 x 20]
+    P2 --> P3["Flatten spatial dims<br/>B x 256 x 360<br/>Formula: Sx = Ho*Wo = 18*20"]
+    P3 --> P4[Permute to memory sequence<br/>360 x B x 256]
+
+    P4 --> D1[Decoder prefix tokens y<br/>B x Sy]
+    D1 --> D2[Embed + 1D positional encoding<br/>Sy x B x 256]
+    D2 --> D3["Causal mask + padding mask<br/>shape unchanged"]
+    D3 --> D4[TransformerDecoder output<br/>Sy x B x 256]
+    D4 --> D5[Linear to vocab C=84<br/>Sy x B x 84]
+
+    D5 --> T1[Teacher forcing train logits<br/>B x 84 x Sy]
+    T1 --> T2[Shifted targets for CE loss<br/>B x Sy]
+
+    D5 --> I1[Autoregressive inference with early stop<br/>B x S where S <= max_output_length]
+
+    PCOUNT["Parameter formulas and counts<br/>ResNet18 backbone without final FC: 11176512<br/>1x1 projection: 512*256+256 = 131328<br/>Embedding: 84*256 = 21504<br/>Final fc: 256*84+84 = 21588<br/>TransformerDecoder 4 layers d=256 ff=1024: 4213760<br/>Total model params: 15564692"]
+    FORM["Shape formulas used<br/>Conv/Pool: out=floor((in+2p-k)/s)+1<br/>Flatten sequence length: Sx=Ho*Wo"]
+    DSET[Dataset note<br/>IAMParagraphs uses 576x640 to keep multi-line paragraph context. Output length 682 is sized to fit long paragraph token sequences including newline token.]
+    IMP[Improvement over LineCNNTransformer<br/>Stronger 2D encoder ResNet + 2D positional context handles paragraph layouts and multi-line structure better.]
+    SH[Shortcomings<br/>Largest model so far; highest training cost and memory footprint.]
+
+    T2 -.-> PCOUNT
+    P3 -.-> FORM
+    A -.-> DSET
+    PCOUNT -.-> IMP
+    SH -.-> IMP

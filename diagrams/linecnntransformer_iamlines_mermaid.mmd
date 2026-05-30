@@ -1,0 +1,29 @@
+flowchart TD
+    A[Input IAMLines x<br/>B x 1 x 56 x 1536<br/>output length budget from dataset = 89] --> B1[LineCNN encoder with tf_dim=256 output channels]
+    B1 --> B2["Conv stack reduces to B x 256 x 1 x 191<br/>Key formula: Sx=floor((W-2)/1)+1 after final conv with kW=2,sW=1 on W=192 gives 191"]
+    B2 --> B3[Squeeze+permute<br/>B x 256 x 191 to B x 191 x 256]
+    B3 --> B4[FC per step then permute to memory<br/>Sx x B x E = 191 x B x 256]
+    B4 --> B5["Scale by sqrt(E) and positional encoding<br/>191 x B x 256"]
+
+    B5 --> D1[Decoder prefix tokens y<br/>B x Sy]
+    D1 --> D2[Embed + positional encoding<br/>Sy x B x 256]
+    D2 --> D3["Causal mask size Sy x Sy + padding mask<br/>shape unchanged"]
+    D3 --> D4[TransformerDecoder output<br/>Sy x B x 256]
+    D4 --> D5[Linear to vocab C=83<br/>Sy x B x 83]
+
+    D5 --> T1[Teacher forcing train path<br/>permute to B x 83 x Sy]
+    T1 --> T2[Loss target y shifted<br/>B x Sy]
+
+    D5 --> I1[Inference autoregressive loop<br/>outputs B x S where S=max_output_length]
+
+    P1["Parameter formulas and counts<br/>LineCNN encoder part: 1616928<br/>Token embedding: 83*256 = 21248<br/>Final decoder fc: 256*83+83 = 21331<br/>TransformerDecoder 4 layers d=256 ff=256: 2637824<br/>Total model params: 4297331"]
+    F1["Shape formulas used<br/>Conv2d: out=floor((in+2p-k)/s)+1<br/>Sequence conversion: memory is Sx x B x E after permute"]
+    DSET[Dataset note<br/>IAMLines uses 1x56x1536 so full handwritten lines fit while preserving enough detail. Labels are tokenized with S/E/P and fixed length 89.]
+    IMP[Improvement over LineCNN<br/>Adds autoregressive token decoding with attention, enabling longer-range dependencies and better sequence modeling.]
+    SH[Shortcomings<br/>Heavier compute/memory; slower inference due to step-by-step decoding loop.]
+
+    T2 -.-> P1
+    B2 -.-> F1
+    A -.-> DSET
+    P1 -.-> IMP
+    SH -.-> IMP

@@ -1,0 +1,20 @@
+flowchart TD
+    A[Input EMNISTLines x<br/>Default: B x 1 x 28 x 896<br/>896 = max_length 32 * char_width 28] --> B[Window config<br/>WW=28, WS=28]
+    B --> C["Compute sequence length S<br/>Formula: S=floor((W-WW)/WS + 1)<br/>Default: floor((896-28)/28 + 1)=32"]
+    C --> D["Each window slice<br/>x[:,:,:,start:end]<br/>Shape per slice: B x 1 x 28 x 28"]
+    D --> E[Shared CNN per slice<br/>Output per slice: B x 83]
+    E --> F["Write into activations[:,:,s]"]
+    F --> G[Final stacked output<br/>Shape: B x 83 x S]
+    G --> H[Optional truncation<br/>Shape: B x 83 x output_length]
+
+    P1["Learnable params<br/>This model reuses one CNN (same as CNN+EMNIST): 1654035 params total."]
+    D1[Dataset note<br/>EMNISTLines synthesizes full text lines by stitching char images, so width is large and naturally maps to sequence axis.]
+    I1["Improvement over CNN<br/>Moves from single-character to sequence prediction by sliding over a whole line image."]
+    S1[Shortcomings<br/>Python loop over windows is slower; limited context because each prediction sees one local crop only.]
+    F1["Shape-change formula note<br/>Only width-to-time conversion happens globally: S=floor((W-WW)/WS+1). Internal CNN formulas are same as previous diagram."]
+
+    G -.-> P1
+    A -.-> D1
+    P1 -.-> I1
+    S1 -.-> I1
+    C -.-> F1

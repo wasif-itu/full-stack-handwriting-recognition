@@ -1,0 +1,27 @@
+flowchart TD
+    A[Input EMNISTLines x<br/>B x 1 x 28 x 896] --> B1["Conv1 1 to 32, k3 s1 p1<br/>B x 32 x 28 x 896<br/>Params: 3*3*1*32 + 32 = 320"]
+    B1 --> B2["Conv2 32 to 32, k3 s1 p1<br/>B x 32 x 28 x 896<br/>Params: 3*3*32*32 + 32 = 9248"]
+    B2 --> B3["Conv3 32 to 32, k3 s2 p1<br/>B x 32 x 14 x 448<br/>Formula: Hout=floor((H+2p-k)/s)+1"]
+    B3 --> B4["Conv4 32 to 32, k3 s1 p1<br/>B x 32 x 14 x 448<br/>Params: 9248"]
+    B4 --> B5["Conv5 32 to 64, k3 s2 p1<br/>B x 64 x 7 x 224<br/>Params: 18496"]
+    B5 --> B6["Conv6 64 to 64, k3 s1 p1<br/>B x 64 x 7 x 224<br/>Params: 36928"]
+    B6 --> B7["Conv7 64 to 128, k3 s2 p1<br/>B x 128 x 4 x 112<br/>Params: 73856"]
+    B7 --> B8["Conv8 128 to 128, k3 s1 p1<br/>B x 128 x 4 x 112<br/>Params: 147584"]
+    B8 --> B9["Conv9 128 to 512, k(3,2) s(3,1) p0<br/>B x 512 x 1 x 111<br/>Formula H: floor((4-3)/3)+1=1, W: floor((112-2)/1)+1=111<br/>Params: 3*2*128*512 + 512 = 393728"]
+    B9 --> C1[Squeeze height axis<br/>B x 512 x 111]
+    C1 --> C2[Permute to B x S x F<br/>B x 111 x 512]
+    C2 --> C3["Linear fc1 512 to 512 + ReLU<br/>B x 111 x 512<br/>Params: 512*512 + 512 = 262656"]
+    C3 --> C4[Dropout<br/>B x 111 x 512]
+    C4 --> C5["Linear fc2 512 to 83<br/>B x 111 x 83<br/>Params: 512*83 + 83 = 42579"]
+    C5 --> C6[Permute to class-first<br/>B x 83 x 111]
+    C6 --> C7[Optional truncation<br/>B x 83 x output_length]
+
+    P1[Total learnable params<br/>320+9248+9248+9248+18496+36928+73856+147584+393728+262656+42579 = 1003891]
+    D1[Dataset note<br/>EMNISTLines keeps fixed height 28 and large width so model can turn width progression into sequence progression.]
+    I1[Improvement over LineCNNSimple<br/>Fully convolutional extraction over whole line is faster and captures broader context than per-window Python looping.]
+    S1[Shortcomings<br/>Still mostly local and convolutional; no explicit long-range autoregressive token dependencies.]
+
+    B9 -.-> P1
+    A -.-> D1
+    P1 -.-> I1
+    S1 -.-> I1
