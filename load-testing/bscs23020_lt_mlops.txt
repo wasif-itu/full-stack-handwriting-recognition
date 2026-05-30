@@ -1,0 +1,35 @@
+=== TEST CONFIGURATION ===
+Users: 10
+Spawn Rate: 2
+Duration Seconds: 60
+
+=== TARGET SYSTEM ===
+Endpoint: https://ajqmhubrppdy65qq5hkbqxkfme0evvni.lambda-url.us-east-1.on.aws/predict
+Method: POST
+
+=== REQUEST PAYLOAD ===
+multipart/form-data with field image=a01-077.png
+
+=== LOCUST RESULTS ===
+Total Requests: 52
+Total Failures: 0
+
+Average Response Time ms: 9096.11
+Median Response Time ms: 8800
+95th Percentile ms: 12000
+
+Requests Per Second: 0.8807
+
+=== STATUS CODE DISTRIBUTION ===
+200: 52
+400: 0
+500: 0
+
+=== FAILURE ANALYSIS ===
+No failures occurred during the test.
+
+=== BOTTLENECK ANALYSIS ===
+MODEL
+
+=== FINAL CONCLUSION ===
+STABLE
