@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "build": "rm -rf dist && mkdir -p dist && cp deployment/ui/index.html dist/index.html",
+    "start": "python deployment/ui/serve.py"
+  },
+  "devDependencies": {}
+}

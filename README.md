@@ -11,7 +11,7 @@ This work is based on the FSDL text recognizer labs and extends them into a port
 - Validated a pretrained IAMParagraphs ResnetTransformer TorchScript model.
 - Built an assignment-compliant public API with `GET /health` and `POST /predict`.
 - Deployed the model using Docker, AWS ECR, and AWS Lambda Function URLs.
-- Added a minimal local UI for uploading images and viewing predictions.
+- Added a mobile-friendly Vercel-ready UI for camera capture, image upload, and prediction display.
 - Performed Locust load testing and documented latency bottlenecks.
 
 ## Live API
@@ -56,7 +56,7 @@ The OCR model uses a ResNet encoder to extract spatial visual features and a Tra
 docs/                 Architecture notes and lab journey
 diagrams/             Model and data pipeline diagrams
 deployment/aws-lambda AWS Lambda container deployment code
-deployment/ui         Minimal browser UI for live testing
+deployment/ui         Browser UI for live testing and Vercel deployment
 load-testing/         Locust script, report, and CSV results
 proof/                Generated proof artifacts such as Locust HTML report
 tools/                Modal notebook runner and helper scripts
@@ -92,6 +92,24 @@ See `load-testing/bscs23020_lt_mlops.txt` and `proof/locust_report.html`.
 ## Important Deployment Note
 
 AWS Lambda cold starts are slow for this model because the container loads PyTorch and a large TorchScript model. Warm predictions are much faster, but the first prediction after idle time can take around two minutes.
+
+## Frontend Deployment
+
+The frontend is a static app that can be deployed on Vercel. It lets users take
+a photo on mobile or upload an image, compresses large phone photos in the
+browser, sends the image to `/predict`, and displays the recognized text.
+
+```bash
+npm run build
+vercel
+```
+
+Vercel reads `vercel.json`, builds `deployment/ui` into `dist/`, and serves the
+app from there. For local testing:
+
+```bash
+npm start
+```
 
 ## Resume Summary
 

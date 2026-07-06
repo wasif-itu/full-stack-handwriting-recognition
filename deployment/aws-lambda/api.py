@@ -16,6 +16,9 @@ ROLL_NO = os.getenv("ROLL_NO", "BSCS23020")
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 JSON_HEADERS = {
     "content-type": "application/json",
+    "access-control-allow-origin": "*",
+    "access-control-allow-methods": "GET,POST,OPTIONS",
+    "access-control-allow-headers": "content-type",
 }
 
 torch.set_num_threads(int(os.getenv("TORCH_NUM_THREADS", "2")))

@@ -3,111 +3,258 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Text Recognizer</title>
+    <title>Handwriting Recognizer</title>
     <style>
       :root {
         color-scheme: light;
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: #f6f7f9;
-        color: #1d2430;
+        background: #f4f6f8;
+        color: #17202a;
+      }
+
+      * {
+        box-sizing: border-box;
       }
 
       body {
         margin: 0;
         min-height: 100vh;
-        display: grid;
-        place-items: center;
+        background:
+          linear-gradient(135deg, rgba(33, 97, 140, 0.12), transparent 34%),
+          linear-gradient(315deg, rgba(24, 132, 95, 0.12), transparent 30%),
+          #f4f6f8;
       }
 
       main {
-        width: min(980px, calc(100vw - 32px));
+        width: min(1120px, calc(100vw - 28px));
+        margin: 0 auto;
+        padding: 28px 0;
         display: grid;
         gap: 18px;
       }
 
       header {
         display: flex;
-        justify-content: space-between;
         align-items: end;
+        justify-content: space-between;
         gap: 16px;
       }
 
       h1 {
         margin: 0;
-        font-size: 28px;
-        font-weight: 700;
+        font-size: clamp(30px, 5vw, 52px);
+        line-height: 1;
+        letter-spacing: 0;
       }
 
-      .status {
-        min-height: 22px;
-        color: #4d5b6b;
+      .subtitle {
+        margin: 10px 0 0;
+        max-width: 660px;
+        color: #526170;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+
+      .status-pill {
+        min-width: 146px;
+        border: 1px solid #cfd7df;
+        border-radius: 999px;
+        padding: 9px 13px;
+        background: rgba(255, 255, 255, 0.78);
+        color: #34495e;
         font-size: 14px;
+        text-align: center;
       }
 
       .workspace {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1.04fr) minmax(320px, 0.96fr);
         gap: 18px;
+        align-items: start;
       }
 
       .panel {
-        background: #ffffff;
-        border: 1px solid #d9dee7;
+        border: 1px solid #d7dee6;
         border-radius: 8px;
-        padding: 16px;
-        min-height: 360px;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 18px 42px rgba(31, 45, 61, 0.08);
       }
 
-      .preview {
+      .capture-panel {
+        min-height: 620px;
         display: grid;
-        gap: 14px;
-        align-content: start;
+        grid-template-rows: auto minmax(320px, 1fr) auto;
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 14px;
+        border-bottom: 1px solid #e3e8ee;
       }
 
       input[type="file"] {
+        position: fixed;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      button,
+      .file-button {
+        min-height: 42px;
+        border: 1px solid #a9b8c7;
+        border-radius: 7px;
+        padding: 10px 14px;
+        background: #ffffff;
+        color: #17202a;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      button.primary {
+        border-color: #1768ac;
+        background: #1768ac;
+        color: #ffffff;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.62;
+      }
+
+      .preview-shell {
+        padding: 14px;
+        display: grid;
+        place-items: center;
+      }
+
+      .empty-preview {
         width: 100%;
+        min-height: 420px;
+        border: 1px dashed #b9c5d0;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        padding: 28px;
+        color: #617181;
+        text-align: center;
+        line-height: 1.45;
+        background: #fbfcfd;
       }
 
       img {
         width: 100%;
-        max-height: 520px;
+        max-height: 620px;
         object-fit: contain;
-        border: 1px solid #e2e6ee;
-        background: #fbfcfe;
+        border: 1px solid #dfe5eb;
+        border-radius: 8px;
+        background: #ffffff;
       }
 
-      button {
-        width: fit-content;
-        border: 0;
-        border-radius: 6px;
-        padding: 10px 14px;
-        background: #1768ac;
-        color: white;
-        font-weight: 650;
-        cursor: pointer;
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        min-height: 47px;
+        padding: 0 14px 14px;
+        color: #526170;
+        font-size: 14px;
       }
 
-      button:disabled {
-        background: #9aa8b8;
-        cursor: wait;
+      .result-panel {
+        min-height: 620px;
+        display: grid;
+        grid-template-rows: auto 1fr;
       }
 
-      pre {
+      .result-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px;
+        border-bottom: 1px solid #e3e8ee;
+      }
+
+      h2 {
         margin: 0;
+        font-size: 18px;
+      }
+
+      .small {
+        color: #617181;
+        font-size: 13px;
+      }
+
+      .output {
+        margin: 0;
+        padding: 18px;
         white-space: pre-wrap;
         word-break: break-word;
-        line-height: 1.45;
-        font-size: 15px;
+        line-height: 1.55;
+        font-size: 17px;
       }
 
-      @media (max-width: 760px) {
+      .loading {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255, 255, 255, 0.45);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 820px) {
+        main {
+          width: min(100vw - 20px, 680px);
+          padding: 18px 0;
+        }
+
+        header,
+        .result-header {
+          align-items: start;
+          flex-direction: column;
+        }
+
         .workspace {
           grid-template-columns: 1fr;
         }
 
-        header {
-          align-items: start;
-          flex-direction: column;
+        .capture-panel,
+        .result-panel {
+          min-height: auto;
+        }
+
+        .toolbar {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+
+        button.primary {
+          grid-column: 1 / -1;
+        }
+
+        .file-button,
+        button {
+          width: 100%;
+        }
+
+        .empty-preview {
+          min-height: 300px;
         }
       }
     </style>
@@ -116,80 +263,198 @@
     <main>
       <header>
         <div>
-          <h1>Text Recognizer</h1>
-          <div class="status" id="status">Choose an image to recognize handwritten text.</div>
+          <h1>Handwriting Recognizer</h1>
+          <p class="subtitle">Take a photo or upload handwriting, then send it to the deployed OCR model for a text prediction.</p>
         </div>
-        <button id="predict" disabled>Predict</button>
+        <div class="status-pill" id="status">Ready</div>
       </header>
 
-      <section class="workspace">
-        <div class="panel preview">
-          <input id="image" type="file" accept="image/png,image/jpeg" />
-          <img id="preview" alt="Selected image preview" hidden />
+      <section class="workspace" aria-label="Handwriting recognition workspace">
+        <div class="panel capture-panel">
+          <div class="toolbar">
+            <label class="file-button" for="cameraInput">Camera</label>
+            <label class="file-button" for="galleryInput">Upload</label>
+            <button class="primary" id="predictButton" type="button" disabled>Predict text</button>
+          </div>
+
+          <input id="cameraInput" type="file" accept="image/*" capture="environment" />
+          <input id="galleryInput" type="file" accept="image/png,image/jpeg,image/webp,image/*" />
+
+          <div class="preview-shell">
+            <div class="empty-preview" id="emptyPreview">Your selected handwriting image will appear here.</div>
+            <img id="preview" alt="Selected handwriting preview" hidden />
+          </div>
+
+          <div class="meta" id="meta"></div>
         </div>
-        <div class="panel">
-          <pre id="output">Prediction will appear here.</pre>
+
+        <div class="panel result-panel">
+          <div class="result-header">
+            <div>
+              <h2>Prediction</h2>
+              <div class="small" id="resultHint">Waiting for an image.</div>
+            </div>
+            <button id="copyButton" type="button" disabled>Copy</button>
+          </div>
+          <pre class="output" id="output">Prediction will appear here.</pre>
         </div>
       </section>
     </main>
 
     <script>
-      const baseUrl = "https://ajqmhubrppdy65qq5hkbqxkfme0evvni.lambda-url.us-east-1.on.aws";
-      const imageInput = document.querySelector("#image");
+      const apiBaseUrl = "https://ajqmhubrppdy65qq5hkbqxkfme0evvni.lambda-url.us-east-1.on.aws";
+      const maxImageSide = 1800;
+      const jpegQuality = 0.88;
+      const requestTimeoutMs = 240000;
+
+      const cameraInput = document.querySelector("#cameraInput");
+      const galleryInput = document.querySelector("#galleryInput");
       const preview = document.querySelector("#preview");
-      const predictButton = document.querySelector("#predict");
+      const emptyPreview = document.querySelector("#emptyPreview");
+      const predictButton = document.querySelector("#predictButton");
+      const copyButton = document.querySelector("#copyButton");
       const output = document.querySelector("#output");
       const status = document.querySelector("#status");
+      const meta = document.querySelector("#meta");
+      const resultHint = document.querySelector("#resultHint");
 
       let selectedFile = null;
+      let uploadFile = null;
+      let predictionText = "";
 
-      imageInput.addEventListener("change", () => {
-        selectedFile = imageInput.files[0] || null;
-        predictButton.disabled = !selectedFile;
+      cameraInput.addEventListener("change", handleImageSelection);
+      galleryInput.addEventListener("change", handleImageSelection);
+      predictButton.addEventListener("click", predictText);
+      copyButton.addEventListener("click", copyPrediction);
+
+      async function handleImageSelection(event) {
+        const file = event.target.files[0] || null;
+        if (!file) return;
+
+        setBusy(true, "Preparing");
         output.textContent = "Prediction will appear here.";
-
-        if (!selectedFile) {
-          preview.hidden = true;
-          status.textContent = "Choose an image to recognize handwritten text.";
-          return;
-        }
-
-        preview.src = URL.createObjectURL(selectedFile);
-        preview.hidden = false;
-        status.textContent = selectedFile.name;
-      });
-
-      predictButton.addEventListener("click", async () => {
-        if (!selectedFile) return;
-
-        predictButton.disabled = true;
-        status.textContent = "Predicting... cold starts can take around 2 minutes.";
-        output.textContent = "";
-
-        const formData = new FormData();
-        formData.append("image", selectedFile, selectedFile.name);
+        predictionText = "";
+        copyButton.disabled = true;
+        resultHint.textContent = "Image ready.";
 
         try {
-          const response = await fetch(`${baseUrl}/predict`, {
+          const prepared = await prepareImage(file);
+          selectedFile = file;
+          uploadFile = prepared.file;
+          preview.src = URL.createObjectURL(prepared.file);
+          preview.hidden = false;
+          emptyPreview.hidden = true;
+          predictButton.disabled = false;
+          status.textContent = "Ready";
+          meta.textContent = `${file.name} -> ${formatBytes(prepared.file.size)} upload, ${prepared.width}x${prepared.height}px`;
+        } catch (error) {
+          selectedFile = null;
+          uploadFile = null;
+          preview.hidden = true;
+          emptyPreview.hidden = false;
+          predictButton.disabled = true;
+          status.textContent = "Image error";
+          meta.textContent = "";
+          output.textContent = error.message || String(error);
+        } finally {
+          setBusy(false);
+          event.target.value = "";
+        }
+      }
+
+      async function prepareImage(file) {
+        if (!file.type.startsWith("image/")) {
+          throw new Error("Please choose an image file.");
+        }
+
+        const bitmap = await createImageBitmap(file);
+        const scale = Math.min(1, maxImageSide / Math.max(bitmap.width, bitmap.height));
+        const width = Math.max(1, Math.round(bitmap.width * scale));
+        const height = Math.max(1, Math.round(bitmap.height * scale));
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext("2d", { alpha: false });
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, width, height);
+        context.drawImage(bitmap, 0, 0, width, height);
+
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", jpegQuality));
+        if (!blob) throw new Error("Could not prepare the image for upload.");
+
+        return {
+          file: new File([blob], "handwriting.jpg", { type: "image/jpeg" }),
+          width,
+          height,
+        };
+      }
+
+      async function predictText() {
+        if (!uploadFile || !selectedFile) return;
+
+        setBusy(true, "Predicting");
+        output.textContent = "";
+        resultHint.textContent = "The first request after idle time can take around two minutes.";
+        copyButton.disabled = true;
+
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), requestTimeoutMs);
+        const formData = new FormData();
+        formData.append("image", uploadFile, uploadFile.name);
+
+        try {
+          const response = await fetch(`${apiBaseUrl}/predict`, {
             method: "POST",
             body: formData,
+            signal: controller.signal,
           });
           const payload = await response.json();
 
-          if (payload.success) {
-            output.textContent = payload.prediction;
-            status.textContent = "Done.";
-          } else {
-            output.textContent = payload.error || "Prediction failed.";
-            status.textContent = "Prediction failed.";
+          if (!response.ok || !payload.success) {
+            throw new Error(payload.error || `Prediction failed with HTTP ${response.status}.`);
           }
+
+          predictionText = payload.prediction || "";
+          output.textContent = predictionText || "(No text returned.)";
+          copyButton.disabled = !predictionText;
+          status.textContent = "Done";
+          resultHint.textContent = "Prediction complete.";
         } catch (error) {
-          output.textContent = String(error);
-          status.textContent = "Request failed.";
+          const aborted = error.name === "AbortError";
+          output.textContent = aborted
+            ? "The request timed out. Try again once the API has warmed up."
+            : error.message || String(error);
+          status.textContent = aborted ? "Timed out" : "Request failed";
+          resultHint.textContent = "Prediction did not complete.";
         } finally {
-          predictButton.disabled = false;
+          window.clearTimeout(timeoutId);
+          setBusy(false);
         }
-      });
+      }
+
+      async function copyPrediction() {
+        if (!predictionText) return;
+        await navigator.clipboard.writeText(predictionText);
+        resultHint.textContent = "Copied.";
+      }
+
+      function setBusy(isBusy, label) {
+        cameraInput.disabled = isBusy;
+        galleryInput.disabled = isBusy;
+        predictButton.disabled = isBusy || !uploadFile;
+        if (isBusy) {
+          status.textContent = label || "Working";
+          predictButton.innerHTML = '<span class="loading" aria-hidden="true"></span>Working';
+        } else {
+          predictButton.textContent = "Predict text";
+        }
+      }
+
+      function formatBytes(bytes) {
+        if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+      }
     </script>
   </body>
 </html>

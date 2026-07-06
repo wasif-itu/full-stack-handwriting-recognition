@@ -1,9 +1,11 @@
-# Minimal Inference UI
+# Handwriting Recognition UI
 
-A small local browser UI for testing the deployed Lambda API.
+A mobile-friendly browser UI for the deployed Lambda handwriting recognition API.
+Users can take a camera photo on their phone or upload an existing image. The
+browser resizes large mobile photos before uploading them to `/predict`.
 
 ```bash
-python serve.py
+npm start
 ```
 
 Open:
@@ -12,4 +14,16 @@ Open:
 http://127.0.0.1:8088/index.html
 ```
 
-The page uploads an image to the deployed `/predict` endpoint and displays the recognized text.
+## Deploy on Vercel
+
+From the repository root:
+
+```bash
+npm run build
+vercel
+```
+
+Vercel uses the root `vercel.json`, runs the build command, and publishes the
+generated `dist/` directory.
+
+The API URL is set in `deployment/ui/index.html` as `apiBaseUrl`.
