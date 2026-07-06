@@ -12,6 +12,14 @@ End-to-end handwriting OCR project covering model architecture study, IAM data p
 - Added a mobile-friendly Vercel-ready UI for camera capture, image upload, and prediction display.
 - Performed Locust load testing and documented latency bottlenecks.
 
+## Live Website
+
+Try the handwriting recognition UI:
+
+```text
+https://full-stack-handwriting-recognition.vercel.app/
+```
+
 ## Live API
 
 Base URL:
@@ -92,6 +100,12 @@ See `load-testing/bscs23020_lt_mlops.txt` and `proof/locust_report.html`.
 AWS Lambda cold starts are slow for this model because the container loads PyTorch and a large TorchScript model. Warm predictions are much faster, but the first prediction after idle time can take around two minutes.
 
 ## Frontend Deployment
+
+Live site:
+
+```text
+https://full-stack-handwriting-recognition.vercel.app/
+```
 
 The frontend is a static app that can be deployed on Vercel. It lets users take
 a photo on mobile or upload an image, compresses large phone photos in the
