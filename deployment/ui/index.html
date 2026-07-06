@@ -346,7 +346,8 @@
           emptyPreview.hidden = true;
           predictButton.disabled = false;
           status.textContent = "Ready";
-          meta.textContent = `${file.name} -> ${formatBytes(prepared.file.size)} upload, ${prepared.width}x${prepared.height}px`;
+          const polarity = prepared.inverted ? ", polarity adjusted" : "";
+          meta.textContent = `${file.name} -> ${formatBytes(prepared.file.size)} upload, ${prepared.width}x${prepared.height}px${polarity}`;
         } catch (error) {
           selectedFile = null;
           uploadFile = null;
@@ -380,6 +381,13 @@
         context.fillRect(0, 0, width, height);
         context.drawImage(bitmap, 0, 0, width, height);
 
+        const imageData = context.getImageData(0, 0, width, height);
+        const inverted = shouldInvertForModel(imageData.data, width, height);
+        if (inverted) {
+          invertImageData(imageData.data);
+          context.putImageData(imageData, 0, 0);
+        }
+
         const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", jpegQuality));
         if (!blob) throw new Error("Could not prepare the image for upload.");
 
@@ -387,7 +395,35 @@
           file: new File([blob], "handwriting.jpg", { type: "image/jpeg" }),
           width,
           height,
+          inverted,
         };
+      }
+
+      function shouldInvertForModel(pixels, width, height) {
+        let luminanceTotal = 0;
+        let samples = 0;
+        const edgeSize = Math.max(8, Math.round(Math.min(width, height) * 0.08));
+
+        for (let y = 0; y < height; y += 8) {
+          for (let x = 0; x < width; x += 8) {
+            const isEdgePixel = x < edgeSize || x >= width - edgeSize || y < edgeSize || y >= height - edgeSize;
+            if (!isEdgePixel) continue;
+
+            const index = (y * width + x) * 4;
+            luminanceTotal += 0.2126 * pixels[index] + 0.7152 * pixels[index + 1] + 0.0722 * pixels[index + 2];
+            samples += 1;
+          }
+        }
+
+        return samples > 0 && luminanceTotal / samples > 145;
+      }
+
+      function invertImageData(pixels) {
+        for (let i = 0; i < pixels.length; i += 4) {
+          pixels[i] = 255 - pixels[i];
+          pixels[i + 1] = 255 - pixels[i + 1];
+          pixels[i + 2] = 255 - pixels[i + 2];
+        }
       }
 
       async function predictText() {

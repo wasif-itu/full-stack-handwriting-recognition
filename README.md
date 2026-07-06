@@ -95,7 +95,8 @@ AWS Lambda cold starts are slow for this model because the container loads PyTor
 
 The frontend is a static app that can be deployed on Vercel. It lets users take
 a photo on mobile or upload an image, compresses large phone photos in the
-browser, sends the image to `/predict`, and displays the recognized text.
+browser, normalizes bright paper images to the model's expected dark-background
+polarity, sends the image to `/predict`, and displays the recognized text.
 
 ```bash
 npm run build

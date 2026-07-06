@@ -2,7 +2,8 @@
 
 A mobile-friendly browser UI for the deployed Lambda handwriting recognition API.
 Users can take a camera photo on their phone or upload an existing image. The
-browser resizes large mobile photos before uploading them to `/predict`.
+browser resizes large mobile photos and normalizes bright paper images to the
+model's expected dark-background polarity before uploading them to `/predict`.
 
 ```bash
 npm start
