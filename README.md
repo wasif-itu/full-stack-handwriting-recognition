@@ -2,8 +2,6 @@
 
 End-to-end handwriting OCR project covering model architecture study, IAM data preparation, ResNet-Transformer inference, AWS Lambda deployment, a minimal browser UI, and Locust load testing.
 
-This work is based on the FSDL text recognizer labs and extends them into a portfolio-ready deployment and evaluation project.
-
 ## Highlights
 
 - Studied OCR architecture progression from MLP/CNN baselines to Transformer-based sequence models.
